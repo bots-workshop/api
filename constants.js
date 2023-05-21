@@ -1,3 +1,3 @@
 export const PORT = 8001;
 
-export const BASE_URL = process.env.NODE_ENV === 'production' ? `http://51.250.41.6:${PORT}` : `http://localhost:${PORT}`;
+export const BASE_URL = process.env.NODE_ENV === 'production' ? `https://sneakers-api-132b.onrender.com` : `http://localhost:${PORT}`;
