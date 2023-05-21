@@ -22,7 +22,7 @@ export const sneakers = {
     },
     4: {
         id: 4,
-        name: 'New Balance City Walker',
+        name: 'Reebok City Walker',
         price: '899 $',
         image: `${BASE_URL}/images/city-sneaker.png`,
     },
