@@ -3,7 +3,8 @@ import cors from 'cors';
 import path, {dirname} from 'path';
 import {users, sneakers} from './database.js'
 import { fileURLToPath } from 'url';
-import {PORT} from './constants.js'
+import bot from './bot.js';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -13,6 +14,29 @@ app.use(express.json());
 app.use(cors({
     origin: '*',
 }))
+
+bot.launch().then(() => {
+    app.get('/update', (req, res) => {
+        const update = req.body;
+        return bot.handleUpdate(JSON.parse(update))
+    })
+
+    app.post('/invoiceLink', async (req, res) => {
+        const {prices} = req.body;
+
+        const link = await bot.telegram.createInvoiceLink({
+            title: 'Buy sneakers',
+            description: 'Sneakers are virtual',
+            payload: 'payload',
+            provider_token: process.env.YO_KASSA_TOKEN,
+            currency: 'USD',
+            need_phone_number: true,
+            prices,
+        });
+
+        res.status(200).send(link);
+    })
+});
 
 const createUser = (id) => {
     const user = {
@@ -106,6 +130,6 @@ app.get('/sneakers', (req, res) => {
     res.send(sneakers);
 });
 
-app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`);
+app.listen(process.env.API_PORT, async () => {
+    await bot.telegram.setWebhook(`http://localhost:${process.env.API_PORT}/update`);
 });
