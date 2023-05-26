@@ -31,7 +31,7 @@ app.post('/invoiceLink', async (req, res) => {
             prices,
         });
 
-        res.status(200).send(link);
+        res.status(200).send({link});
     } catch (err) {
         console.error(err);
         res.status(500).send(err);
