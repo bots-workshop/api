@@ -1,6 +1,6 @@
 import {Telegraf, Markup} from 'telegraf';
 import 'dotenv/config';
-import {users, sneakers} from './database'
+import {users, sneakers} from './database.js'
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
