@@ -25,7 +25,7 @@ app.post('/invoiceLink', async (req, res) => {
             title: 'Buy sneakers',
             description: 'Sneakers are virtual',
             payload: 'payload',
-            provider_token: process.env.YO_KASSA_TOKEN,
+            provider_token: process.env.SBER_TOKEN,
             currency: 'RUB',
             need_phone_number: true,
             prices,
