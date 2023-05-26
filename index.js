@@ -15,28 +15,29 @@ app.use(cors({
     origin: '*',
 }))
 
-bot.launch().then(() => {
-    app.get('/update', (req, res) => {
-        const update = req.body;
-        return bot.handleUpdate(JSON.parse(update))
-    })
+bot.launch();
 
-    app.post('/invoiceLink', async (req, res) => {
-        const {prices} = req.body;
+app.post('/invoiceLink', async (req, res) => {
+    const {prices} = req.body;
 
+    try {
         const link = await bot.telegram.createInvoiceLink({
             title: 'Buy sneakers',
             description: 'Sneakers are virtual',
             payload: 'payload',
             provider_token: process.env.YO_KASSA_TOKEN,
-            currency: 'USD',
+            currency: 'RUB',
             need_phone_number: true,
             prices,
         });
 
         res.status(200).send(link);
-    })
-});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+
+})
 
 const createUser = (id) => {
     const user = {
@@ -131,5 +132,5 @@ app.get('/sneakers', (req, res) => {
 });
 
 app.listen(process.env.API_PORT, async () => {
-    await bot.telegram.setWebhook(`http://localhost:${process.env.API_PORT}/update`);
+    // await bot.telegram.setWebhook(`http://localhost:${process.env.API_PORT}/update`);
 });
