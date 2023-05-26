@@ -98,6 +98,7 @@ app.post('/users/:userId/sneakers/:sneakerId', (req, res) => {
             id: sneakerId,
             steps: 0,
         }
+
         res.status(200).send(user.sneakers);
     } else {
         res.status(404).send('User or sneakers not found')
