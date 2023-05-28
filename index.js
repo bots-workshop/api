@@ -43,6 +43,7 @@ const createUser = (id) => {
     const user = {
         id,
         sneakers: {},
+        isWalking: false,
     }
     users[id] = user;
 
