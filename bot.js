@@ -14,11 +14,14 @@ bot.telegram.setMyCommands([
 
 bot.use(async (ctx, next) => {
     const { id: userId } = ctx.from;
-    const user = users[userId];
+    let user = users[userId];
 
     if (!user) {
-        await ctx.reply("I don't know you")
-        return;
+        user = {
+            sneakers: {},
+            id: userId,
+        };
+        users[userId] = user;
     }
 
     ctx.user = user;

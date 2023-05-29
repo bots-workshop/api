@@ -12,9 +12,7 @@ export const users = {
                 steps: 123,
             },
         },
-        isWalking: false,
         id: 429385818,
-        lastLocation: null,
     }
 };
 
