@@ -65,6 +65,7 @@ bot.command('start_walk', ctx => {
         lastLocation: null,
         steps: 0,
         sneakerId: null,
+        counterMessageId: null,
     }
 
     ctx.reply(
@@ -81,6 +82,7 @@ Object.keys(sneakers).forEach(id => bot.action(id, ctx => {
             lastLocation: null,
             steps: 0,
             sneakerId: null,
+            counterMessageId: null,
         }
     }
 
@@ -103,7 +105,7 @@ bot.command('finish_walk', ctx => {
     ctx.reply(`Walk is finished. You have completed ${walk.steps} steps`);
 })
 
-bot.on('location', (ctx) => {
+bot.on('location', async (ctx) => {
     const STEP_SIZE_IN_METERS =  0.8
     const { user } = ctx;
 
@@ -121,7 +123,8 @@ bot.on('location', (ctx) => {
     };
 
     if (lastLocation === null) {
-        ctx.reply('We started tracking your walk and counting steps!')
+        const message = await ctx.reply('We started tracking your walk and counting steps!')
+        walk.counterMessageId = message.message_id;
     } else {
         const distance = geolib.getDistance(
             { latitude: lastLocation.latitude, longitude: lastLocation.longitude },
@@ -131,7 +134,7 @@ bot.on('location', (ctx) => {
 
         walk.steps += steps;
 
-        ctx.reply('Steps taken: ', walk.steps)
+        await ctx.telegram.editMessageText(ctx.chat.id, walk.counterMessageId, null, `Steps taken: ${walk.steps}`)
     }
 
     user.lastLocation = currentLocation;
