@@ -133,6 +133,4 @@ app.get('/sneakers', (req, res) => {
     res.send(sneakers);
 });
 
-app.listen(process.env.API_PORT, async () => {
-    // await bot.telegram.setWebhook(`http://localhost:${process.env.API_PORT}/update`);
-});
+app.listen(process.env.API_PORT);
