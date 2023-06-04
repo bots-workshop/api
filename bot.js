@@ -18,7 +18,12 @@ bot.use(async (ctx, next) => {
 
     if (!user) {
         user = {
-            sneakers: {},
+            sneakers: {
+                1: {
+                    id: 1,
+                    steps: 0,
+                },
+            },
             id: userId,
         };
         users[userId] = user;
@@ -83,6 +88,7 @@ Object.keys(sneakers).forEach(id => bot.action(id, ctx => {
             steps: 0,
             sneakerId: null,
             counterMessageId: null,
+            locationMessageId: null,
         }
     }
 
@@ -96,8 +102,8 @@ bot.command('finish_walk', ctx => {
     const { user } = ctx;
 
     const walk = walks[user.id];
-    if (!walk) {
-        ctx.reply('You are not walking right now');
+    if (!walk || !user.sneakers[walk.sneakerId]) {
+        return ctx.reply('You are not walking right now');
     }
 
     user.sneakers[walk.sneakerId].steps += walk.steps;
@@ -105,8 +111,9 @@ bot.command('finish_walk', ctx => {
     ctx.reply(`Walk is finished. You have completed ${walk.steps} steps`);
 })
 
+const STEP_SIZE_IN_METERS =  0.8
+
 bot.on('location', async (ctx) => {
-    const STEP_SIZE_IN_METERS =  0.8
     const { user } = ctx;
 
     const walk = walks[user.id]
@@ -115,29 +122,37 @@ bot.on('location', async (ctx) => {
         return;
     }
 
-    const lastLocation = walk.lastLocation;
-    const { latitude, longitude } = ctx.message.location;
-    const currentLocation = {
-        latitude,
-        longitude,
-    };
+    walk.lastLocation =  ctx.message.location;
 
-    if (lastLocation === null) {
-        const message = await ctx.reply('We started tracking your walk and counting steps!')
-        walk.counterMessageId = message.message_id;
-    } else {
-        const distance = geolib.getDistance(
-            { latitude: lastLocation.latitude, longitude: lastLocation.longitude },
-            { latitude: currentLocation.latitude, longitude: currentLocation.longitude }
-        );
-        const steps = distance / STEP_SIZE_IN_METERS;
+    const message = await ctx.reply('We started tracking your walk and counting steps!')
 
-        walk.steps += steps;
+    walk.counterMessageId = message.message_id;
+    walk.locationMessageId = ctx.message.message_id;
 
-        await ctx.telegram.editMessageText(ctx.chat.id, walk.counterMessageId, null, `Steps taken: ${walk.steps}`)
-    }
+    bot.on('edited_message', async ctx => {
+        if (ctx.editedMessage.message_id === walk.locationMessageId) {
+            const { latitude, longitude } = ctx.editedMessage.location;
+            const currentLocation = {
+                latitude,
+                longitude,
+            };
+            const lastLocation = walk.lastLocation;
 
-    user.lastLocation = currentLocation;
+            console.log('!!!currentLocation:', currentLocation);
+
+            const distance = geolib.getDistance(
+                { latitude: lastLocation.latitude, longitude: lastLocation.longitude },
+                { latitude: currentLocation.latitude, longitude: currentLocation.longitude }
+            );
+            const steps = distance / STEP_SIZE_IN_METERS;
+
+            walk.steps += steps;
+
+            await ctx.telegram.editMessageText(ctx.chat.id, walk.counterMessageId, null, `Steps taken: ${walk.steps}`)
+
+            user.lastLocation = currentLocation;
+        }
+    })
 });
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true));
