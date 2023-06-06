@@ -17,18 +17,25 @@ app.use(cors({
 
 bot.launch();
 
+const rubToCents = value =>  value * 100;
+
 app.post('/invoiceLink', async (req, res) => {
-    const {prices} = req.body;
+    const {sneakerId} = req.body;
 
     try {
+        const {name, price} = sneakers[sneakerId];
+
         const link = await bot.telegram.createInvoiceLink({
             title: 'Buy sneakers',
             description: 'Sneakers are virtual',
-            payload: 'payload',
+            payload: String(sneakerId),
             provider_token: process.env.SBER_TOKEN,
             currency: 'RUB',
             need_phone_number: true,
-            prices,
+            prices: [{
+                label: name,
+                amount: rubToCents(price),
+            }],
         });
 
         res.status(200).send({link});

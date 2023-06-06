@@ -129,6 +129,7 @@ bot.on('location', async (ctx) => {
     walk.counterMessageId = message.message_id;
     walk.locationMessageId = ctx.message.message_id;
 
+    // TODO: отписываться от события
     bot.on('edited_message', async ctx => {
         if (ctx.editedMessage.message_id === walk.locationMessageId) {
             const { latitude, longitude } = ctx.editedMessage.location;
