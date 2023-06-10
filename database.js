@@ -1,20 +1,6 @@
 import 'dotenv/config';
 
-export const users = {
-    429385818: {
-        sneakers: {
-            1: {
-                id: 1,
-                steps: 0,
-            },
-            2: {
-                id: 2,
-                steps: 123,
-            },
-        },
-        id: 429385818,
-    }
-};
+export const users = {};
 
 export const walks = {};
 

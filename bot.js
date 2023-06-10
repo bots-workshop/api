@@ -12,7 +12,7 @@ bot.telegram.setMyCommands([
     {command: 'finish_walk', description: 'Stop counting steps'},
 ])
 
-bot.use(async (ctx, next) => {
+bot.use( (ctx, next) => {
     const { id: userId } = ctx.from;
     let user = users[userId];
 
@@ -33,12 +33,16 @@ bot.use(async (ctx, next) => {
     return next();
 });
 
-bot.start((ctx) => ctx.reply(
-    'Welcome',
+const START_MESSAGE = 'Welcome to sneakers shop!\nPress "Open shop" button and buy a new pair of sneakers 😎️️️️️️';
+
+bot.start(ctx => ctx.reply(
+    START_MESSAGE,
     Markup.inlineKeyboard([
         Markup.button.webApp('Open shop', process.env.WEB_APP_URL),
     ]),
 ));
+
+
 
 bot.telegram.setChatMenuButton({
     menuButton: {
@@ -58,7 +62,8 @@ bot.command('stats', ctx => {
     }
 
     ctx.reply(Object.values(user.sneakers).map(
-        ({id, steps}) => `<b>${sneakers[id].name}</b>\nШагов пройдено: ${steps}`).join("\n\n"),
+        ({id, steps}) =>
+            `<b>${sneakers[id].name}</b>\nШагов пройдено: ${steps}`).join("\n\n"),
         {parse_mode: 'HTML'},
     )
 })
@@ -107,13 +112,14 @@ bot.command('finish_walk', ctx => {
     }
 
     user.sneakers[walk.sneakerId].steps += walk.steps;
+    delete walk[user.id];
 
     ctx.reply(`Walk is finished. You have completed ${walk.steps} steps`);
 })
 
 const STEP_SIZE_IN_METERS =  0.8
 
-bot.on('location', async (ctx) => {
+bot.on('location', async ctx => {
     const { user } = ctx;
 
     const walk = walks[user.id]
@@ -129,36 +135,27 @@ bot.on('location', async (ctx) => {
     walk.counterMessageId = message.message_id;
     walk.locationMessageId = ctx.message.message_id;
 
-    // TODO: отписываться от события
     bot.on('edited_message', async ctx => {
         if (ctx.editedMessage.message_id === walk.locationMessageId) {
             const { latitude, longitude } = ctx.editedMessage.location;
-            const currentLocation = {
-                latitude,
-                longitude,
-            };
+            const currentLocation = { latitude, longitude };
             const lastLocation = walk.lastLocation;
 
-            console.log('!!!currentLocation:', currentLocation);
-
-            const distance = geolib.getDistance(
-                { latitude: lastLocation.latitude, longitude: lastLocation.longitude },
-                { latitude: currentLocation.latitude, longitude: currentLocation.longitude }
-            );
+            const distance = geolib.getDistance(lastLocation, currentLocation);
             const steps = distance / STEP_SIZE_IN_METERS;
 
             walk.steps += steps;
 
-            await ctx.telegram.editMessageText(ctx.chat.id, walk.counterMessageId, null, `Steps taken: ${walk.steps}`)
+            await ctx.telegram.editMessageText(ctx.chat.id, walk.counterMessageId, null, `Steps taken: ${walk.steps}`);
 
             user.lastLocation = currentLocation;
         }
-    })
+    });
 });
 
 bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true));
 
-bot.on('successful_payment', async (ctx) => {
+bot.on('successful_payment', (ctx) => {
     const { user } = ctx;
     const { invoice_payload: sneakerId } = ctx.message.successful_payment;
 
